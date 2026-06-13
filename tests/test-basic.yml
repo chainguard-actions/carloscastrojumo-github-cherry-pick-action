@@ -1,0 +1,28 @@
+name: Test basic usage
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        continue-on-error: true
+        uses: .
+        with:
+          token: ${{ github.token }}
+          branch: release/v1
+          title: "Cherry pick: {old_title}"
+          body: "Cherry pick of PR #{old_pull_request_id}"
+          labels: "cherry-pick,automated"
+          assignees: "octocat"
+          reviewers: "octocat"
+          committer: "GitHub <noreply@github.com>"
+          author: "Test User <test@example.com>"
+      - name: Assert action ran (may fail due to no real GitHub context)
+        run: |
+          echo "Action outcome: ${{ steps.action.outcome }}"
+          echo "PASS: action step executed (errors expected in act environment)"

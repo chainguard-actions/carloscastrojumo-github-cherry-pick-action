@@ -10,6 +10,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 |---------|-----|-----------------|
 | v1.0.6 | [`v1.0.6`](https://github.com/chainguard-actions/carloscastrojumo-github-cherry-pick-action/tree/v1.0.6) | [`34df9c8`](https://github.com/carloscastrojumo/github-cherry-pick-action/commit/34df9c86753e60ea9daf3525077da3f8539248a0) |
 | v1.0.7 | [`v1.0.7`](https://github.com/chainguard-actions/carloscastrojumo-github-cherry-pick-action/tree/v1.0.7) | [`37cd77b`](https://github.com/carloscastrojumo/github-cherry-pick-action/commit/37cd77bf4c7ef1c9264ffd36e31a54238f7392d5) |
+| v1.0.8 | [`v1.0.8`](https://github.com/chainguard-actions/carloscastrojumo-github-cherry-pick-action/tree/v1.0.8) | [`eaae785`](https://github.com/carloscastrojumo/github-cherry-pick-action/commit/eaae785f74f2ca4a20ec8b0651b58f9a46af6523) |
 
 ## Privacy
 

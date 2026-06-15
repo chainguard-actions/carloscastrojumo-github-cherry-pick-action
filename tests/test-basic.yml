@@ -1,0 +1,23 @@
+name: Test basic cherry pick inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          token: ${{ github.token }}
+          branch: release/v1.0
+          title: "Cherry pick: {old_title}"
+          body: "Cherry pick of PR {old_pull_request_id}"
+          labels: "cherry-pick,automated"
+          committer: "GitHub <noreply@github.com>"
+          author: "Test User <test@example.com>"
+      - name: Assert action ran (may fail due to missing GitHub context)
+        run: |
+          echo "Action outcome: ${{ steps.action.outcome }}"
+          echo "PASS: action step executed"

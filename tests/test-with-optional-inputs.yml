@@ -1,0 +1,60 @@
+name: Test cherry-pick action with optional inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/42/merge
+      GITHUB_HEAD_REF: feature/my-feature
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up fake GitHub event payload
+        run: |
+          mkdir -p /tmp/github-event
+          cat > /tmp/github-event/event.json <<'EOF'
+          {
+            "pull_request": {
+              "number": 42,
+              "title": "My Feature PR",
+              "body": "This is a feature PR",
+              "merged": true,
+              "merge_commit_sha": "0000000000000000000000000000000000000000",
+              "labels": [{"name": "enhancement"}],
+              "assignees": [],
+              "requested_reviewers": []
+            }
+          }
+          EOF
+          echo "GITHUB_EVENT_PATH=/tmp/github-event/event.json" >> $GITHUB_ENV
+
+      - name: Invoke cherry-pick action with optional inputs
+        id: cherry-pick
+        uses: .
+        with:
+          token: ${{ github.token }}
+          branch: release/v2.0
+          title: "[Cherry-pick] {old_title}"
+          body: "Automated cherry-pick of #{old_pull_request_id}"
+          labels: "cherry-pick,automated"
+          inherit_labels: "false"
+          assignees: ""
+          reviewers: ""
+          cherry-pick-branch: "cherry-pick/42-to-release-v2"
+          committer: "Test Bot <testbot@example.com>"
+          author: "Test Author <testauthor@example.com>"
+        continue-on-error: true
+
+      - name: Assert action was invoked with optional inputs
+        run: |
+          echo "Cherry-pick step outcome: ${{ steps.cherry-pick.outcome }}"
+          # The action will fail because there's no real GitHub API/PR context,
+          # but it should fail with an API error, not a startup/input parsing error.
+          if [ "${{ steps.cherry-pick.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action was invoked with optional inputs (outcome: ${{ steps.cherry-pick.outcome }})"

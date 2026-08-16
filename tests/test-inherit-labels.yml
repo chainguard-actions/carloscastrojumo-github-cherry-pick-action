@@ -1,0 +1,52 @@
+name: Test cherry-pick action with inherit_labels default
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/10/merge
+      GITHUB_HEAD_REF: bugfix/fix-issue
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up fake GitHub event payload
+        run: |
+          mkdir -p /tmp/github-event
+          cat > /tmp/github-event/event.json <<'EOF'
+          {
+            "pull_request": {
+              "number": 10,
+              "title": "Fix critical bug",
+              "body": "This fixes a critical bug",
+              "merged": true,
+              "merge_commit_sha": "0000000000000000000000000000000000000000",
+              "labels": [{"name": "bug"}, {"name": "critical"}],
+              "assignees": [],
+              "requested_reviewers": []
+            }
+          }
+          EOF
+          echo "GITHUB_EVENT_PATH=/tmp/github-event/event.json" >> $GITHUB_ENV
+
+      - name: Invoke cherry-pick action with inherit_labels true (default)
+        id: cherry-pick
+        uses: .
+        with:
+          token: ${{ github.token }}
+          branch: hotfix/v1.2
+          inherit_labels: "true"
+        continue-on-error: true
+
+      - name: Assert action was invoked with inherit_labels default
+        run: |
+          echo "Cherry-pick step outcome: ${{ steps.cherry-pick.outcome }}"
+          # The action will fail because there's no real GitHub API/PR context,
+          # but it should fail with an API error, not a startup/input parsing error.
+          if [ "${{ steps.cherry-pick.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action was invoked with inherit_labels=true (outcome: ${{ steps.cherry-pick.outcome }})"

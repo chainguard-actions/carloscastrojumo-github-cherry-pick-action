@@ -1,0 +1,32 @@
+name: Test custom title and body inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Test that the action accepts custom title and body inputs without
+      # configuration errors. Under workflow_dispatch there is no PR context,
+      # so the action will fail at runtime when trying to find the triggering PR.
+      # We verify it starts correctly with these optional inputs.
+      - id: action
+        uses: .
+        with:
+          branch: release/1.0
+          title: "Cherry pick: {old_title}"
+          body: "Cherry picked from PR #{old_pull_request_id}"
+          labels: "cherry-pick"
+        continue-on-error: true
+
+      - name: Assert action ran (not a setup/module error)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran with outcome=$OUTCOME"

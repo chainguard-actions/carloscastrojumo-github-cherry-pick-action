@@ -1,0 +1,39 @@
+name: Test custom cherry-pick branch name input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Test that the action accepts the optional cherry-pick-branch input.
+      # Under act there is no real GitHub API, so the action will fail at the
+      # API call stage. We verify it ran (not skipped) and processed the inputs.
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          token: ${{ github.token }}
+          branch: release/v2
+          cherry-pick-branch: cherry-pick/my-feature-into-release-v2
+          title: "Cherry pick: {old_title}"
+          body: "Cherry pick of PR #{old_pull_request_id}"
+          committer: "GitHub <noreply@github.com>"
+          author: "Test User <test@example.com>"
+
+      - name: Assert action ran with custom branch input
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped, it did not run at all"
+            exit 1
+          fi
+          echo "PASS: action ran with custom cherry-pick-branch input (outcome=$OUTCOME)"

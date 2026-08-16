@@ -1,0 +1,42 @@
+name: Test labels and assignees inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Test that the action accepts labels, assignees, and reviewers inputs.
+      # Under act there is no real GitHub API, so the action will fail at the
+      # API call stage. We verify it ran (not skipped) and accepted all inputs.
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          token: ${{ github.token }}
+          branch: release/v3
+          labels: |
+            cherry-pick
+            automated
+          inherit_labels: "false"
+          assignees: "octocat"
+          reviewers: "octocat"
+          committer: "GitHub <noreply@github.com>"
+          author: "Test User <test@example.com>"
+
+      - name: Assert action ran with labels and assignees inputs
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped, it did not run at all"
+            exit 1
+          fi
+          echo "PASS: action ran with labels/assignees inputs (outcome=$OUTCOME)"

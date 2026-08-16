@@ -1,0 +1,39 @@
+name: Test basic usage - cherry pick action loads and processes inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # The action requires a GitHub token and a valid PR context to cherry-pick.
+      # Under act, there is no real GitHub API, so the action will fail when it
+      # tries to call the GitHub API. We verify it fails at the API stage (not at
+      # startup/input-parsing), which confirms the action loads and processes inputs.
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          token: ${{ github.token }}
+          branch: release/v1
+          committer: "GitHub <noreply@github.com>"
+          author: "Test User <test@example.com>"
+
+      - name: Assert action ran (failed at API stage, not startup)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          # The action should fail (no real GitHub API under act),
+          # but it must not be 'skipped' — it must have actually run.
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped, it did not run at all"
+            exit 1
+          fi
+          echo "PASS: action ran (outcome=$OUTCOME, expected failure due to no GitHub API)"

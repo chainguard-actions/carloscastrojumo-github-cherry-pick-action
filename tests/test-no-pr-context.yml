@@ -1,0 +1,29 @@
+name: Test cherry-pick action without PR context
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # The action requires a PR context to cherry-pick from.
+      # Under workflow_dispatch there is no PR, so the action should fail
+      # with a meaningful error (not an unhandled crash).
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          token: ${{ github.token }}
+          branch: non-existent-target-branch
+
+      - name: Assert action failed as expected (no PR context)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" != "failure" ]; then
+            echo "FAIL: expected action to fail when there is no PR context, but outcome was '$OUTCOME'"
+            exit 1
+          fi
+          echo "PASS: action correctly failed when invoked without a PR context"

@@ -1,4 +1,4 @@
-name: Test basic cherry-pick usage
+name: Test cherry-pick with labels and assignees
 on:
   workflow_dispatch:
 jobs:
@@ -12,7 +12,12 @@ jobs:
         continue-on-error: true
         with:
           token: ${{ github.token }}
-          branch: main
+          branch: release/v2.0
+          labels: |
+            cherry-pick
+            automated
+          inherit_labels: "false"
+          assignees: octocat
 
       - name: Assert action ran (succeeds or fails gracefully on sentinel repo)
         env:

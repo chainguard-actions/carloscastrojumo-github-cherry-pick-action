@@ -1,4 +1,4 @@
-name: Test basic cherry-pick usage
+name: Test cherry-pick with custom cherry-pick branch and force push
 on:
   workflow_dispatch:
 jobs:
@@ -12,7 +12,11 @@ jobs:
         continue-on-error: true
         with:
           token: ${{ github.token }}
-          branch: main
+          branch: release/v3.0
+          cherry-pick-branch: cherry-pick/my-feature-release-v3.0
+          force: "true"
+          committer: "Test Bot <testbot@example.com>"
+          author: "Test Author <testauthor@example.com>"
 
       - name: Assert action ran (succeeds or fails gracefully on sentinel repo)
         env:

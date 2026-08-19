@@ -1,4 +1,4 @@
-name: Test basic cherry-pick usage
+name: Test cherry-pick with custom title and body
 on:
   workflow_dispatch:
 jobs:
@@ -12,7 +12,9 @@ jobs:
         continue-on-error: true
         with:
           token: ${{ github.token }}
-          branch: main
+          branch: release/v1.0
+          title: "cherry-pick: {old_title}"
+          body: "Cherry-picked from PR #{old_pull_request_id}"
 
       - name: Assert action ran (succeeds or fails gracefully on sentinel repo)
         env:
